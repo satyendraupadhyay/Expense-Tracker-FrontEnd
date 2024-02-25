@@ -7,7 +7,7 @@ const { log } = require('console');
 const errorController = require('./controllers/error');
 const sequelize = require('./util/database');
 
-const expenseTrac = require('./models/expenseTracker');
+const users = require('./models/user');
 var cors = require('cors');
 
 const app = express();
@@ -24,21 +24,21 @@ app.post('/user/signup', async (req, res, next) => {
 
     console.log(req.body);
 
-    const data = await expenseTrac.create({name: name, email: email, password: password })
+    const data = await users.create({name: name, email: email, password: password })
     res.status(201).json({newSmDetail: data});
 
 })
 
-// app.get('/studentattendance/get-sa', async (req, res, next) => {
-//     try {
-//         // const date = req.params.date;
-//         const smp = await Sam.findAll();
-//         res.json(smp);
+app.get('/user/get-signup', async (req, res, next) => {
+    try {
+        // const date = req.params.date;
+        const smp = await users.findAll();
+        res.json(smp);
 
-//     } catch (err) {
-//         console.log(err);
-//     }
-// })
+    } catch (err) {
+        console.log(err);
+    }
+})
 
 app.use(errorController.get404);
 
