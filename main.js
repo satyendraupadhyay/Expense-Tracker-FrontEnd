@@ -77,11 +77,16 @@ login.addEventListener('click', (event) => {
 
     axios.get("http://localhost:3000/user/get-signup")
       .then(res => {
-        const dataExists = res.data.some(item => item.email === email && item.password === password);
+        const dataExists = res.data.some(item => item.email === email);
         if (dataExists) {
-          alert("Login successful");
+          if (res.data.some(item => item.password === password)){
+            alert("User Login successful");
+          }
+          else {
+            alert("User not authorized");
+          }
         } else {
-          alert("Invalid email or password");
+          alert("User not found");
         }
       })
       .catch(error => {
