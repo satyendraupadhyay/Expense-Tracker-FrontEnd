@@ -21,21 +21,9 @@ expense.addEventListener('submit', (event) => {
 })
 
 function showUser(productDetails) {
-    let parent = null;
+    let parent = document.getElementById('items');
     var itemID = productDetails.id;
-    console.log(itemID);
 
-    if (productDetails.category === "Fuel") {
-        parent = document.getElementById('fuel');
-    } else if (productDetails.category === "Food") {
-        parent = document.getElementById('food');
-    } else if (productDetails.category === "Electricity") {
-        parent = document.getElementById('electricity');
-    } else if (productDetails.category === "Movie") {
-        parent = document.getElementById('movie');
-    }
-
-    if (parent !== null) {
         let child = document.createElement('li');
         let btn = document.createElement('button');
         btn.textContent = "Delete";
@@ -52,7 +40,7 @@ function showUser(productDetails) {
         child.textContent = `Amount: ${productDetails.amount} - Description: ${productDetails.description} - Category: ${productDetails.category} `;
         child.appendChild(btn);
         parent.appendChild(child);
-    }
+    
 }
 
 // GET the saved User Details from crudcrud.
