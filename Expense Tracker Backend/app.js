@@ -21,6 +21,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 const userRoutes = require('./routes/user');
 app.use(userRoutes);
 
+const expenseRoutes = require('./routes/expense');
+app.use(expenseRoutes);
+
 // app.post('/user/signup', async (req, res, next) => {
 //     const name = req.body.name;
 //     const email = req.body.email;

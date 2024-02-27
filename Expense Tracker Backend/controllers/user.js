@@ -33,21 +33,25 @@ exports.getSignup =  async (req, res, next) => {
 }
 
 exports.login = async (req, res) => {
-    const { email, password } = req.body;
-    console.log(req.body);
+    try {
+        const { email, password } = req.body;
+        console.log(req.body);
 
-    const user = await users.findAll({where: {email}});
-    if (user.length > 0) {
-        bcrypt.compare(password, user[0].password, (err, result) => {
-            if (err) {
-                res.status(500).json({success: false, message: "Something went wrong"})
+        const user = await users.findOne({ where: { email } });
+
+        if (user) {
+            const passwordMatch = await bcrypt.compare(password, user.password);
+
+            if (passwordMatch) {
+                res.status(200).json({ success: true, message: "User logged in successfully" });
+            } else {
+                res.status(400).json({ success: false, message: "Password is incorrect" });
             }
-            if (result === true) {
-                res.status(200).json({success: true, message: "User logged in successfully"})
-            }
-            else {
-                return res.status(400).json({success: false, message: "Password is incorrect"})
-            }
-        })
+        } else {
+            res.status(400).json({ success: false, message: "User not found" });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Something went wrong" });
     }
-}
+};
