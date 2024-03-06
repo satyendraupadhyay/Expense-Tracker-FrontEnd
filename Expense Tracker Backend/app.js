@@ -8,7 +8,8 @@ const { log } = require('console');
 const errorController = require('./controllers/error');
 const sequelize = require('./util/database');
 
-// const users = require('./models/user');
+const User = require('./models/user');
+const Expense = require('./models/expense');
 var cors = require('cors');
 
 const app = express();
@@ -82,6 +83,9 @@ app.use(expenseRoutes);
 
 
 app.use(errorController.get404);
+
+User.hasMany(Expense);
+Expense.belongsTo(User);
 
 sequelize.sync()
 .then(result => {

@@ -12,6 +12,7 @@ login.addEventListener('submit', (event) => {
           alert(res.data.message);
           
           if (res.data.success) {
+          localStorage.setItem('token', res.data.token);
           window.location.href = '../ExpenseTracker/index.html';
         }
           

@@ -5,10 +5,10 @@ expense.addEventListener('submit', (event) => {
     const expenseDetails = {
         amount: event.target.amount.value,
         description: event.target.description.value,
-        category: event.target.category.value
+        category: event.target.category.value,
     }
-
-    axios.post('http://localhost:3000/expense/add-expense', expenseDetails)
+    const token = localStorage.getItem('token');
+    axios.post('http://localhost:3000/expense/add-expense', expenseDetails, { headers: {"Authorization": token } })
     .then(res => {
         console.log(res);
         showUser(res.data.newExpenseDetail);
@@ -43,13 +43,11 @@ function showUser(productDetails) {
     
 }
 
-// GET the saved User Details from crudcrud.
 window.addEventListener("DOMContentLoaded", async () => {
+    const token = localStorage.getItem('token');
     try {
-        const res = await axios.get("http://localhost:3000/expense/get-expense");
-        for (var i = 0; i < res.data.length; i++) {
-            showUser(res.data[i]);
-        }
+        const res = await axios.get("http://localhost:3000/expense/get-expense", { headers: {"Authorization": token } });
+        res.data.forEach(user => showUser(user));
         console.log(res);
     } catch (err) {
         console.error(err);
