@@ -33,8 +33,8 @@ exports.getSignup =  async (req, res, next) => {
     }
 }
 
-function generateAccessToken(id, name) {
-    return jwt.sign({userId: id , name: name} , 'secretkey');
+function generateAccessToken(id, name, ispremiumuser) {
+    return jwt.sign({userId: id , name: name, ispremiumuser} , 'secretkey');
 }
 
 exports.login = async (req, res) => {
@@ -48,7 +48,7 @@ exports.login = async (req, res) => {
             const passwordMatch = await bcrypt.compare(password, user.password);
 
             if (passwordMatch) {
-                res.status(200).json({ success: true, message: "User logged in successfully" , token: generateAccessToken(user.id, user.name)});
+                res.status(200).json({ success: true, message: "User logged in successfully" , token: generateAccessToken(user.id, user.name, user.ispremiumuser)});
             } else {
                 res.status(400).json({ success: false, message: "Password is incorrect" });
             }
@@ -60,3 +60,5 @@ exports.login = async (req, res) => {
         res.status(500).json({ success: false, message: "Something went wrong" });
     }
 };
+
+module.exports.generateAccessToken = generateAccessToken;

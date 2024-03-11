@@ -43,8 +43,29 @@ function showUser(productDetails) {
     
 }
 
+function parseJwt (token) {
+    var base64Url = token.split('.')[1];
+    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+
+    return JSON.parse(jsonPayload);
+}
+
+function showPremiumuserMessage() {
+    document.getElementById('rzp-button1').style.visibility = 'hidden';
+    document.getElementById('message').innerHTML = "You are a premium user";
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
     const token = localStorage.getItem('token');
+    const decodeToken = parseJwt(token);
+    console.log(decodeToken);
+    const isadmin = decodeToken.ispremiumuser;
+    if (isadmin) {
+        showPremiumuserMessage();
+    }
     try {
         const res = await axios.get("http://localhost:3000/expense/get-expense", { headers: {"Authorization": token } });
         res.data.forEach(user => showUser(user));
@@ -62,12 +83,19 @@ document.getElementById('rzp-button1').onclick = async (e) => {
         "key": response.data.id,
         "order_id": response.data.order.id,
         "handler": async function (response) {
-            await axios.post('http://localhost:3000/purchase/updatetransactionstatus', {
+            const res = await axios.post('http://localhost:3000/purchase/updatetransactionstatus', {
                 order_id: options.order_id,
                 payment_id: response.razorpay_payment_id
             }, { headers: {"Authorization": token } })
 
             alert('You are a premium user now');
+
+            document.getElementById('rzp-button1').style.visibility = 'hidden';
+            document.getElementById('message').innerHTML = "You are a premium user";
+            localStorage.setItem('isadmin', res.data.token);
+
+            
+            
         }
     };
     const rzp1 = new Razorpay(options);
@@ -78,4 +106,27 @@ document.getElementById('rzp-button1').onclick = async (e) => {
         console.log(response);
         alert('Something went wrong');
     })
+}
+
+document.getElementById('leaderboard').onclick = async (e) => {
+    const parentLB = document.getElementById('leaderboard-div');
+    const childLB = document.createElement('h2');
+    childLB.textContent = 'Leaderboard:';
+    parentLB.appendChild(childLB);
+
+    try {
+        const res = await axios.get("http://localhost:3000/premium/showleaderboard");
+
+        res.data.forEach(user => showPremium(user));
+        console.log(res.data);
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+function showPremium(user) {
+    const parent = document.getElementById('leaderboard-ul');
+    const child = document.createElement('li');
+    child.textContent = `Name - ${user.name} | Total Expense - ${user.totalExpenses}`;
+    parent.appendChild(child);
 }

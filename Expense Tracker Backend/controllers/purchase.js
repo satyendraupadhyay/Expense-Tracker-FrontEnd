@@ -1,5 +1,6 @@
 const Razorpay = require('razorpay');
 const order = require('../models/orders');
+const userController = require('./user');
 
 const purchasepremium = async (req, res) => {
     try {
@@ -29,6 +30,7 @@ const purchasepremium = async (req, res) => {
 
 const updateTransactionStatus = async (req, res) => {
     try {
+        const userId = req.user.id;
         const { payment_id, order_id } = req.body;
         const foundOrder = await order.findOne({ where: { orderid: order_id } });
 
@@ -40,9 +42,13 @@ const updateTransactionStatus = async (req, res) => {
 
         const updateUserPromise = req.user.update({ ispremiumuser: true });
 
-        await Promise.all([updateOrderPromise, updateUserPromise]);
+        await Promise.all([updateOrderPromise, updateUserPromise]).then(() => {
+            return res.status(202).json({ success: true, message: 'Transaction successful', token: userController.generateAccessToken(userId, undefined, true) });
+        }).catch((error) => {
+            throw new Error(error);
+        })
 
-        return res.status(202).json({ success: true, message: 'Transaction successful' });
+        
     } catch (err) {
         console.error(err);
         return res.status(500).json({ success: false, message: 'Internal Server Error' });

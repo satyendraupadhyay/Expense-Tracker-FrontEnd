@@ -30,6 +30,9 @@ app.use(expenseRoutes);
 const purchaseRoutes = require('./routes/purchase');
 app.use(purchaseRoutes);
 
+const premiumRoutes = require('./routes/premiumFeature');
+app.use(premiumRoutes);
+
 app.use(errorController.get404);
 
 User.hasMany(Expense);
