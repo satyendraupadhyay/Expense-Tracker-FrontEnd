@@ -13,12 +13,12 @@ const getUserLeaderBoard = async (req, res) => {
                 }
             ],
             group: ['user.id'],
-            order: [['totalExpenses', 'DESC']] // Add proper ordering based on the totalExpenses column
+            order: [['totalExpenses', 'DESC']]
         });
 
         console.log(expenses);
         res.status(200).json(expenses);
-        
+
     } catch (err) {
         console.error(err);
         res.status(500).json(err);
