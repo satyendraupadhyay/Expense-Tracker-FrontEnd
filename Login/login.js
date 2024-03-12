@@ -24,3 +24,7 @@ login.addEventListener('submit', (event) => {
         })
         
 });
+
+function forgotpassword() {
+  window.location.href = "../ForgotPassword/index.html"
+}

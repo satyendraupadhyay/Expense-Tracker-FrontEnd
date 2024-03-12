@@ -8,6 +8,7 @@ const { log } = require('console');
 
 
 const errorController = require('./controllers/error');
+// const resetpasswordController = require('../controllers/resetpassword');
 const sequelize = require('./util/database');
 
 const User = require('./models/user');
@@ -33,6 +34,10 @@ app.use(purchaseRoutes);
 const premiumRoutes = require('./routes/premiumFeature');
 app.use(premiumRoutes);
 
+const Forgotpassword = require('./models/forgotpassword');
+const resetPasswordRoutes = require('./routes/resetpassword')
+app.use('/password', resetPasswordRoutes);
+
 app.use(errorController.get404);
 
 User.hasMany(Expense);
@@ -40,6 +45,9 @@ Expense.belongsTo(User);
 
 User.hasMany(Order);
 Order.belongsTo(User);
+
+User.hasMany(Forgotpassword);
+Forgotpassword.belongsTo(User);
 
 sequelize.sync()
 .then(result => {

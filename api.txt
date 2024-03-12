@@ -1,0 +1,7 @@
+Brevo api key (email): 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
+
+Razorpay api keys
+
+Key Id => rzp_test_FiPZVBhHkz4MF2
+
+Key Secret => BZ8nCpXfTrj4dpEK2rOjTQnV
