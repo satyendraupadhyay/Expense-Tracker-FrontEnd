@@ -130,3 +130,22 @@ function showPremium(user) {
     child.textContent = `Name - ${user.name} | Total Expense - ${user.totalExpenses}`;
     parent.appendChild(child);
 }
+
+function download(){
+    axios.get('http://localhost:3000/user/download', { headers: {"Authorization" : token} })
+    .then((response) => {
+        if(response.status === 201){
+            var a = document.createElement("a");
+            a.href = response.data.fileUrl;
+            a.download = 'myexpense.csv';
+            a.click();
+        } else {
+            throw new Error(response.data.message)
+        }
+
+    })
+    .catch((err) => {
+        showError(err)
+    });
+}
+
