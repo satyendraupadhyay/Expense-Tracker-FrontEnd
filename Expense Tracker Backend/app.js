@@ -34,6 +34,9 @@ app.use(purchaseRoutes);
 const premiumRoutes = require('./routes/premiumFeature');
 app.use(premiumRoutes);
 
+const filesRoutes = require('./routes/files');
+app.use(filesRoutes);
+
 const Forgotpassword = require('./models/forgotpassword');
 const resetPasswordRoutes = require('./routes/resetpassword')
 app.use('/password', resetPasswordRoutes);

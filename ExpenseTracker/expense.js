@@ -8,15 +8,15 @@ expense.addEventListener('submit', (event) => {
         category: event.target.category.value,
     }
     const token = localStorage.getItem('token');
-    axios.post('http://localhost:3000/expense/add-expense', expenseDetails, { headers: {"Authorization": token } })
-    .then(res => {
-        console.log(res);
-        showUser(res.data.newExpenseDetail);
-    })
-    .catch((err) => {
-        document.body.innerHTML = document.body.innerHTML + "<h4>Something went wrong</h4>";
-        console.log(err);
-    })
+    axios.post('http://localhost:3000/expense/add-expense', expenseDetails, { headers: { "Authorization": token } })
+        .then(res => {
+            console.log(res);
+            showUser(res.data.newExpenseDetail);
+        })
+        .catch((err) => {
+            document.body.innerHTML = document.body.innerHTML + "<h4>Something went wrong</h4>";
+            console.log(err);
+        })
 
 })
 
@@ -24,29 +24,29 @@ function showUser(productDetails) {
     let parent = document.getElementById('items');
     var itemID = productDetails.id;
 
-        let child = document.createElement('li');
-        let btn = document.createElement('button');
-        btn.textContent = "Delete";
-        
-        btn.addEventListener('click', async function() {
-            try {
-                await axios.delete(`http://localhost:3000/expense/delete-expense/${itemID}`);
-                parent.removeChild(child);
-            } catch (err) {
-                console.log(err);
-            }
-        });
+    let child = document.createElement('li');
+    let btn = document.createElement('button');
+    btn.textContent = "Delete";
 
-        child.textContent = `Amount: ${productDetails.amount} - Description: ${productDetails.description} - Category: ${productDetails.category} `;
-        child.appendChild(btn);
-        parent.appendChild(child);
-    
+    btn.addEventListener('click', async function () {
+        try {
+            await axios.delete(`http://localhost:3000/expense/delete-expense/${itemID}`);
+            parent.removeChild(child);
+        } catch (err) {
+            console.log(err);
+        }
+    });
+
+    child.textContent = `Amount: ${productDetails.amount} - Description: ${productDetails.description} - Category: ${productDetails.category} `;
+    child.appendChild(btn);
+    parent.appendChild(child);
+
 }
 
-function parseJwt (token) {
+function parseJwt(token) {
     var base64Url = token.split('.')[1];
     var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+    var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
         return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join(''));
 
@@ -67,7 +67,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         showPremiumuserMessage();
     }
     try {
-        const res = await axios.get("http://localhost:3000/expense/get-expense", { headers: {"Authorization": token } });
+        const res = await axios.get("http://localhost:3000/expense/get-expense", { headers: { "Authorization": token } });
         res.data.forEach(user => showUser(user));
         console.log(res);
     } catch (err) {
@@ -77,7 +77,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 document.getElementById('rzp-button1').onclick = async (e) => {
     const token = localStorage.getItem('token');
-    const response = await axios.get("http://localhost:3000/purchase/premiummembership", { headers: {"Authorization": token } });
+    const response = await axios.get("http://localhost:3000/purchase/premiummembership", { headers: { "Authorization": token } });
     console.log(response);
     var options = {
         "key": response.data.id,
@@ -86,7 +86,7 @@ document.getElementById('rzp-button1').onclick = async (e) => {
             const res = await axios.post('http://localhost:3000/purchase/updatetransactionstatus', {
                 order_id: options.order_id,
                 payment_id: response.razorpay_payment_id
-            }, { headers: {"Authorization": token } })
+            }, { headers: { "Authorization": token } })
 
             alert('You are a premium user now');
 
@@ -94,15 +94,15 @@ document.getElementById('rzp-button1').onclick = async (e) => {
             document.getElementById('message').innerHTML = "You are a premium user";
             localStorage.setItem('isadmin', res.data.token);
 
-            
-            
+
+
         }
     };
     const rzp1 = new Razorpay(options);
     rzp1.open();
     e.preventDefault();
 
-    rzp1.on('payment.failed', function(response) {
+    rzp1.on('payment.failed', function (response) {
         console.log(response);
         alert('Something went wrong');
     })
@@ -131,21 +131,47 @@ function showPremium(user) {
     parent.appendChild(child);
 }
 
-function download(){
-    axios.get('http://localhost:3000/user/download', { headers: {"Authorization" : token} })
-    .then((response) => {
-        if(response.status === 201){
-            var a = document.createElement("a");
-            a.href = response.data.fileUrl;
-            a.download = 'myexpense.csv';
-            a.click();
-        } else {
-            throw new Error(response.data.message)
-        }
+function download() {
+    const token = localStorage.getItem('token');
+    axios.get('http://localhost:3000/user/download', { headers: { "Authorization": token } })
+        .then((response) => {
+            console.log(response)
+            if (response.status === 200) {
+                var a = document.createElement("a");
+                a.href = response.data.fileURL;
+                a.download = 'myexpense.csv';
+                a.click();
+                showFilesFront(response.data.showFiles)
+            } else {
+                throw new Error(response.data.message)
 
-    })
-    .catch((err) => {
-        showError(err)
-    });
+            }
+
+        })
+        .catch((err) => {
+            // showError(err)
+            console.log(err);
+        });
 }
+
+function showFilesFront(data) {
+    const parent = document.getElementById('files');
+    const child = document.createElement('li');
+
+    const sChild = document.createElement('a');
+    sChild.href = data.fileURL;
+    sChild.textContent = `File ${data.id}`
+
+    child.appendChild(sChild);
+    parent.appendChild(child);
+}
+
+window.addEventListener("DOMContentLoaded", async () => {
+    try {
+        const res = await axios.get("http://localhost:3000/expense/files");
+        res.data.forEach(user => showFilesFront(user));
+    } catch (err) {
+        console.error(err);
+    }
+});
 
