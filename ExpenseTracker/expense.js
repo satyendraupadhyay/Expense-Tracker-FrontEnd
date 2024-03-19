@@ -1,3 +1,7 @@
+const token = localStorage.getItem('token');
+
+const pagination = document.getElementById('pagination');
+
 const expense = document.getElementById('expense');
 expense.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -11,7 +15,7 @@ expense.addEventListener('submit', (event) => {
     axios.post('http://localhost:3000/expense/add-expense', expenseDetails, { headers: { "Authorization": token } })
         .then(res => {
             console.log(res);
-            showUser(res.data.newExpenseDetail);
+            showUser(res.newExpenseDetail);
         })
         .catch((err) => {
             document.body.innerHTML = document.body.innerHTML + "<h4>Something went wrong</h4>";
@@ -19,29 +23,6 @@ expense.addEventListener('submit', (event) => {
         })
 
 })
-
-function showUser(productDetails) {
-    let parent = document.getElementById('items');
-    var itemID = productDetails.id;
-
-    let child = document.createElement('li');
-    let btn = document.createElement('button');
-    btn.textContent = "Delete";
-
-    btn.addEventListener('click', async function () {
-        try {
-            await axios.delete(`http://localhost:3000/expense/delete-expense/${itemID}`);
-            parent.removeChild(child);
-        } catch (err) {
-            console.log(err);
-        }
-    });
-
-    child.textContent = `Amount: ${productDetails.amount} - Description: ${productDetails.description} - Category: ${productDetails.category} `;
-    child.appendChild(btn);
-    parent.appendChild(child);
-
-}
 
 function parseJwt(token) {
     var base64Url = token.split('.')[1];
@@ -58,25 +39,7 @@ function showPremiumuserMessage() {
     document.getElementById('message').innerHTML = "You are a premium user";
 }
 
-window.addEventListener("DOMContentLoaded", async () => {
-    const token = localStorage.getItem('token');
-    const decodeToken = parseJwt(token);
-    console.log(decodeToken);
-    const isadmin = decodeToken.ispremiumuser;
-    if (isadmin) {
-        showPremiumuserMessage();
-    }
-    try {
-        const res = await axios.get("http://localhost:3000/expense/get-expense", { headers: { "Authorization": token } });
-        res.data.forEach(user => showUser(user));
-        console.log(res);
-    } catch (err) {
-        console.error(err);
-    }
-});
-
 document.getElementById('rzp-button1').onclick = async (e) => {
-    const token = localStorage.getItem('token');
     const response = await axios.get("http://localhost:3000/purchase/premiummembership", { headers: { "Authorization": token } });
     console.log(response);
     var options = {
@@ -132,7 +95,6 @@ function showPremium(user) {
 }
 
 function download() {
-    const token = localStorage.getItem('token');
     axios.get('http://localhost:3000/user/download', { headers: { "Authorization": token } })
         .then((response) => {
             console.log(response)
@@ -166,12 +128,101 @@ function showFilesFront(data) {
     parent.appendChild(child);
 }
 
-window.addEventListener("DOMContentLoaded", async () => {
+const showFiles = async () => {
     try {
-        const res = await axios.get("http://localhost:3000/expense/files");
+        const res = await axios.get("http://localhost:3000/expense/files", { headers: { "Authorization": token } });
         res.data.forEach(user => showFilesFront(user));
     } catch (err) {
         console.error(err);
     }
-});
+}
+    
 
+// Function to show pagination controls
+function showPagination({ currentPage, hasNextPage, nextPage, hasPreviousPage, previousPage }) {
+    const pagination = document.getElementById('pagination');
+    pagination.innerHTML = '';
+
+    // Create and append button for previous page if available
+    if (hasPreviousPage) {
+        const btn2 = document.createElement('button');
+        btn2.textContent = "Previous";
+        btn2.addEventListener('click', () => getProducts(previousPage));
+        pagination.appendChild(btn2);
+    }
+
+    // Create and append button for current page
+    const btn1 = document.createElement('button');
+    btn1.innerHTML = `<h3>${currentPage}</h3>`;
+    btn1.addEventListener('click', () => getProducts(currentPage));
+    pagination.appendChild(btn1);
+
+    // Create and append button for next page if available
+    if (hasNextPage) {
+        const btn3 = document.createElement('button');
+        btn3.textContent = "Next";
+        btn3.addEventListener('click', () => getProducts(nextPage));
+        pagination.appendChild(btn3);
+    }
+}
+
+// Function to fetch products based on page number
+function getProducts(page) {
+    axios.get(`http://localhost:3000/expense/get-expense?page=${page}`, { headers: { "Authorization": token } })
+        .then(({ data: { expenses, ...pageData } }) => {
+            showUser(expenses);
+            showPagination(pageData);
+        })
+        .catch((err) => console.log(err));
+}
+
+// Function to display user details
+function showUser(productDetails) {
+    const parent = document.getElementById('items');
+    if (!parent) {
+        console.error("Parent element 'items' not found.");
+        return;
+    }
+    parent.innerHTML = ''; // Clear existing items before rendering new ones
+
+    productDetails.forEach((product) => {
+        const itemID = product.id;
+        const amount = product.amount;
+        const child = document.createElement('li');
+        const btn = document.createElement('button');
+        btn.textContent = "Delete";
+
+        // Event listener to delete item
+        btn.addEventListener('click', async function () {
+            try {
+                await axios.delete(`http://localhost:3000/expense/delete-expense/${itemID}`, { headers: { "Authorization": token } });
+                // Remove deleted item from UI
+                parent.removeChild(child);
+            } catch (err) {
+                console.error("Error deleting expense:", err);
+            }
+        });
+
+        // Display product details
+        child.textContent = `Amount: ${amount} - Description: ${product.description} - Category: ${product.category} `;
+        child.appendChild(btn);
+        parent.appendChild(child);
+    });
+}
+
+
+// Function to fetch expenses on page load
+const getExpenses = async () => {
+    try {
+        const res = await axios.get(`http://localhost:3000/expense/get-expense`, { headers: { "Authorization": token } });
+        showUser(res.data.expenses);
+        showPagination(res.data);
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+    showFiles();
+    getExpenses();
+})

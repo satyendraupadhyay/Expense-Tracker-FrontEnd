@@ -28,8 +28,9 @@ exports.downloadexpense = async (req, res) => {
 }
 
 exports.getFiles = async (req, res) => {
+    
     try {
-        const files = await Files.findAll();
+        const files = await Files.findAll({ where: { userId: req.user.id } });
         res.json(files);
     } catch (err) {
         console.error(err);
@@ -74,17 +75,40 @@ exports.addExpense = async (req, res, next) => {
     }
 };
 
+const ITEMS_PER_PAGE = 5;
 
 exports.getExpense = async (req, res, next) => {
     console.log('See here >>>', req.user.id);
+    const page = +req.query.page || 1;
+    let totalItems;
+
     try {
-        const expenses = await expense.findAll({ where: { userId: req.user.id } });
-        res.json(expenses);
+        // Count total items before fetching the data
+        totalItems = await expense.count({ where: { userId: req.user.id } });
+
+        const expenses = await expense.findAll({ 
+            where: { 
+                userId: req.user.id,
+            },
+            offset: (page - 1) * ITEMS_PER_PAGE,
+            limit: ITEMS_PER_PAGE
+        });
+
+        res.json({
+            expenses: expenses,
+            currentPage: page,
+            hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+            nextPage: page + 1,
+            hasPreviousPage: page > 1,
+            previousPage: page - 1,
+            lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE)
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
+
 
 exports.deleteExpense = async (req, res) => {
     const t = await sequelize.transaction();
@@ -99,7 +123,7 @@ exports.deleteExpense = async (req, res) => {
     try {
         await expense.destroy({ where: { id: expenseid, userId: req.user.id } }, { transaction: t });
 
-        const totalExpense = Number(req.user.totalExpenses) - Number(amount);
+        const totalExpense = Number(req.user.totalExpenses) - Number(expense.amount);
 
         await User.update({
             totalExpenses: totalExpense
