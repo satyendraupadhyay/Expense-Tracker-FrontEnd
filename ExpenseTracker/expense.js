@@ -139,7 +139,7 @@ const showFiles = async () => {
     
 
 // Function to show pagination controls
-function showPagination({ currentPage, hasNextPage, nextPage, hasPreviousPage, previousPage }) {
+function showPagination({ currentPage, hasNextPage, nextPage, hasPreviousPage, previousPage, limit=5 }) {
     const pagination = document.getElementById('pagination');
     pagination.innerHTML = '';
 
@@ -147,33 +147,23 @@ function showPagination({ currentPage, hasNextPage, nextPage, hasPreviousPage, p
     if (hasPreviousPage) {
         const btn2 = document.createElement('button');
         btn2.textContent = "Previous";
-        btn2.addEventListener('click', () => getProducts(previousPage));
+        btn2.addEventListener('click', () => getExpenses(previousPage, limit));
         pagination.appendChild(btn2);
     }
 
     // Create and append button for current page
     const btn1 = document.createElement('button');
     btn1.innerHTML = `<h3>${currentPage}</h3>`;
-    btn1.addEventListener('click', () => getProducts(currentPage));
+    btn1.addEventListener('click', () => getExpenses(currentPage, limit));
     pagination.appendChild(btn1);
 
     // Create and append button for next page if available
     if (hasNextPage) {
         const btn3 = document.createElement('button');
         btn3.textContent = "Next";
-        btn3.addEventListener('click', () => getProducts(nextPage));
+        btn3.addEventListener('click', () => getExpenses(nextPage, limit));
         pagination.appendChild(btn3);
     }
-}
-
-// Function to fetch products based on page number
-function getProducts(page) {
-    axios.get(`http://localhost:3000/expense/get-expense?page=${page}`, { headers: { "Authorization": token } })
-        .then(({ data: { expenses, ...pageData } }) => {
-            showUser(expenses);
-            showPagination(pageData);
-        })
-        .catch((err) => console.log(err));
 }
 
 // Function to display user details
@@ -212,9 +202,12 @@ function showUser(productDetails) {
 
 
 // Function to fetch expenses on page load
-const getExpenses = async () => {
+const getExpenses = async (page, limit=5) => {
+    if(localStorage.getItem('limit')){
+        limit = localStorage.getItem('limit');
+    }
     try {
-        const res = await axios.get(`http://localhost:3000/expense/get-expense`, { headers: { "Authorization": token } });
+        const res = await axios.get(`http://localhost:3000/expense/get-expense?page=${page}&limit=${limit}`, { headers: { "Authorization": token } });
         showUser(res.data.expenses);
         showPagination(res.data);
     } catch (err) {
@@ -222,7 +215,16 @@ const getExpenses = async () => {
     }
 }
 
+function setPaginationLimit(){
+    const paginationLimit = document.getElementById('paginationLimit');
+    paginationLimit.addEventListener('change', () => {
+        localStorage.setItem('limit', paginationLimit.value);
+        window.location.reload();
+    });
+}
+
 window.addEventListener("DOMContentLoaded", () => {
     showFiles();
     getExpenses();
+    setPaginationLimit();
 })

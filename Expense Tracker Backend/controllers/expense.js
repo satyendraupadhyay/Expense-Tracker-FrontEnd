@@ -75,12 +75,14 @@ exports.addExpense = async (req, res, next) => {
     }
 };
 
-const ITEMS_PER_PAGE = 5;
+// const ITEMS_PER_PAGE = 5;
 
 exports.getExpense = async (req, res, next) => {
     console.log('See here >>>', req.user.id);
     const page = +req.query.page || 1;
     let totalItems;
+    const limit = parseInt(req.query.limit);
+    console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>' , limit);
 
     try {
         // Count total items before fetching the data
@@ -90,18 +92,19 @@ exports.getExpense = async (req, res, next) => {
             where: { 
                 userId: req.user.id,
             },
-            offset: (page - 1) * ITEMS_PER_PAGE,
-            limit: ITEMS_PER_PAGE
+            offset: (page - 1) * limit,
+            limit
         });
 
         res.json({
             expenses: expenses,
             currentPage: page,
-            hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+            hasNextPage: limit * page < totalItems,
             nextPage: page + 1,
             hasPreviousPage: page > 1,
             previousPage: page - 1,
-            lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE)
+            lastPage: Math.ceil(totalItems / limit),
+            limit
         });
     } catch (err) {
         console.error(err);
