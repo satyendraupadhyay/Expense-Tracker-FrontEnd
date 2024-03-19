@@ -1,46 +1,46 @@
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
+var cors = require('cors');
 
 const express = require('express');
 const bodyParser = require('body-parser');
 const { log } = require('console');
-
-
+const helmet = require('helmet');
+const morgan = require('morgan');
 
 const errorController = require('./controllers/error');
-// const resetpasswordController = require('../controllers/resetpassword');
-const sequelize = require('./util/database');
-
+const userRoutes = require('./routes/user');
+const expenseRoutes = require('./routes/expense');
+const purchaseRoutes = require('./routes/purchase');
+const premiumRoutes = require('./routes/premiumFeature');
+const filesRoutes = require('./routes/files');
+const resetPasswordRoutes = require('./routes/resetpassword')
 const User = require('./models/user');
 const Expense = require('./models/expense');
 const Order = require('./models/orders');
-var cors = require('cors');
+const Forgotpassword = require('./models/forgotpassword');
+const sequelize = require('./util/database');
+
+const accessLogStream = fs.createWriteStream(
+    path.join(__dirname, 'access.log'),
+    { flags: 'a'}
+);
 
 const app = express();
 
 app.use(cors());
-
+app.use(helmet());
 app.use(bodyParser.json({ extended: false }));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(morgan('combined', { stream: accessLogStream }));
 
-const userRoutes = require('./routes/user');
 app.use(userRoutes);
-
-const expenseRoutes = require('./routes/expense');
 app.use(expenseRoutes);
-
-const purchaseRoutes = require('./routes/purchase');
 app.use(purchaseRoutes);
-
-const premiumRoutes = require('./routes/premiumFeature');
 app.use(premiumRoutes);
-
-const filesRoutes = require('./routes/files');
 app.use(filesRoutes);
-
-const Forgotpassword = require('./models/forgotpassword');
-const resetPasswordRoutes = require('./routes/resetpassword')
 app.use('/password', resetPasswordRoutes);
-
 app.use(errorController.get404);
 
 User.hasMany(Expense);
@@ -54,7 +54,7 @@ Forgotpassword.belongsTo(User);
 
 sequelize.sync()
 .then(result => {
-    app.listen(3000);
+    app.listen(process.env.PORT || 3000);
 })
 .catch(err => {
     console.log(err);

@@ -75,14 +75,11 @@ exports.addExpense = async (req, res, next) => {
     }
 };
 
-// const ITEMS_PER_PAGE = 5;
-
 exports.getExpense = async (req, res, next) => {
     console.log('See here >>>', req.user.id);
     const page = +req.query.page || 1;
     let totalItems;
     const limit = parseInt(req.query.limit);
-    console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>' , limit);
 
     try {
         // Count total items before fetching the data
