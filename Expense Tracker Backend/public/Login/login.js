@@ -7,7 +7,7 @@ login.addEventListener('submit', (event) => {
       email: event.target.email.value,
       password: event.target.password.value
     }
-        axios.post('http://localhost:3000/user/login', loginDetails)
+        axios.post('http://16.16.74.234:3000/user/login', loginDetails)
         .then(res => {
           alert(res.data.message);
           

@@ -43,6 +43,10 @@ app.use(filesRoutes);
 app.use('/password', resetPasswordRoutes);
 app.use(errorController.get404);
 
+app.use((req, res) => {
+    res.sendFile(path.join(__dirname, 'public/Login/login.html'));
+})
+
 User.hasMany(Expense);
 Expense.belongsTo(User);
 

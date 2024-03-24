@@ -43,7 +43,7 @@ const forgotpassword = async (req, res) => {
                     to: receivers,
                     subject: 'Forgot password',
                     textContent: 'Here is your password',
-                    htmlContent: `<a href="http://localhost:3000/password/resetpassword/${id}">Reset password</a>`
+                    htmlContent: `<a href="http://16.16.74.234:3000/password/resetpassword/${id}">Reset password</a>`
                 });
             
                 if (msg && msg.messageId) {

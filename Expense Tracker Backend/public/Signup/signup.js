@@ -12,13 +12,13 @@ signup.addEventListener('submit', (event) => {
         password
     }
 
-    axios.get("http://localhost:3000/user/get-signup")
+    axios.get("http://16.16.74.234:3000/user/get-signup")
     .then(res => {
       const dataExists = res.data.some(item => item.email === email);
       if (dataExists) {
         document.body.innerHTML = document.body.innerHTML + "<h4>Error: User already exists</h4>"
       } else {
-        axios.post("http://localhost:3000/user/signup", obj)
+        axios.post("http://16.16.74.234:3000/user/signup", obj)
         .then((response) => {
             console.log(response);
             showUser(response.data.newSmDetail);
