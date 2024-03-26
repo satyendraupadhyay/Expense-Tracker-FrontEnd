@@ -3,26 +3,87 @@ const token = localStorage.getItem('token');
 const pagination = document.getElementById('pagination');
 
 const expense = document.getElementById('expense');
-expense.addEventListener('submit', (event) => {
+const expenseForm = document.getElementById('expense');
+const itemsParent = document.getElementById('items');
+
+expenseForm.addEventListener('submit', async (event) => {
     event.preventDefault();
 
-    const expenseDetails = {
-        amount: event.target.amount.value,
-        description: event.target.description.value,
-        category: event.target.category.value,
-    }
-    const token = localStorage.getItem('token');
-    axios.post('http://16.16.74.234:3000/expense/add-expense', expenseDetails, { headers: { "Authorization": token } })
-        .then(res => {
-            console.log(res);
-            showUser(res.newExpenseDetail);
-        })
-        .catch((err) => {
-            document.body.innerHTML = document.body.innerHTML + "<h4>Something went wrong</h4>";
-            console.log(err);
-        })
+    // Get expense details from the form
+    const amount = event.target.amount.value;
+    const description = event.target.description.value;
+    const category = event.target.category.value;
 
-})
+    // Send expense details to the server
+    try {
+        const response = await axios.post('http://16.16.74.234:3000/expense/add-expense', {
+            amount,
+            description,
+            category
+        }, {
+            headers: { "Authorization": token }
+        });
+
+        // Add the newly added expense to the UI
+        const newExpense = response.data.newExpenseDetail;
+        const newItem = document.createElement('li');
+        newItem.textContent = `Amount: ${newExpense.amount} - Description: ${newExpense.description} - Category: ${newExpense.category} `;
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = "Delete";
+
+        deleteBtn.addEventListener('click', async () => {
+            try {
+                await axios.delete(`http://16.16.74.234:3000/expense/delete-expense/${newExpense.id}`, {
+                    headers: { "Authorization": token }
+                });
+                // Remove the item from the UI
+                itemsParent.removeChild(newItem);
+            } catch (err) {
+                console.error("Error deleting expense:", err);
+            }
+        });
+
+        newItem.appendChild(deleteBtn);
+        itemsParent.appendChild(newItem);
+    } catch (err) {
+        console.error("Error adding expense:", err);
+    }
+});
+
+// Function to display user details
+function showUser(productDetails) {
+    const parent = document.getElementById('items');
+    if (!parent) {
+        console.error("Parent element 'items' not found.");
+        return;
+    }
+
+    parent.innerHTML = ''; // Clear existing items before rendering new ones
+
+    productDetails.forEach((product) => {
+        const itemID = product.id;
+        const amount = product.amount;
+        const child = document.createElement('li');
+        const btn = document.createElement('button');
+        btn.textContent = "Delete";
+
+        // Event listener to delete item
+        btn.addEventListener('click', async function () {
+            try {
+                await axios.delete(`http://16.16.74.234:3000/expense/delete-expense/${itemID}`, { headers: { "Authorization": token } });
+                // Remove deleted item from UI
+                parent.removeChild(child);
+            } catch (err) {
+                console.error("Error deleting expense:", err);
+            }
+        });
+
+        // Display product details
+        child.textContent = `Amount: ${amount} - Description: ${product.description} - Category: ${product.category} `;
+        child.appendChild(btn);
+        parent.appendChild(child);
+    });
+}
 
 function parseJwt(token) {
     var base64Url = token.split('.')[1];
@@ -165,41 +226,6 @@ function showPagination({ currentPage, hasNextPage, nextPage, hasPreviousPage, p
         pagination.appendChild(btn3);
     }
 }
-
-// Function to display user details
-function showUser(productDetails) {
-    const parent = document.getElementById('items');
-    if (!parent) {
-        console.error("Parent element 'items' not found.");
-        return;
-    }
-    parent.innerHTML = ''; // Clear existing items before rendering new ones
-
-    productDetails.forEach((product) => {
-        const itemID = product.id;
-        const amount = product.amount;
-        const child = document.createElement('li');
-        const btn = document.createElement('button');
-        btn.textContent = "Delete";
-
-        // Event listener to delete item
-        btn.addEventListener('click', async function () {
-            try {
-                await axios.delete(`http://16.16.74.234:3000/expense/delete-expense/${itemID}`, { headers: { "Authorization": token } });
-                // Remove deleted item from UI
-                parent.removeChild(child);
-            } catch (err) {
-                console.error("Error deleting expense:", err);
-            }
-        });
-
-        // Display product details
-        child.textContent = `Amount: ${amount} - Description: ${product.description} - Category: ${product.category} `;
-        child.appendChild(btn);
-        parent.appendChild(child);
-    });
-}
-
 
 // Function to fetch expenses on page load
 const getExpenses = async (page, limit=5) => {

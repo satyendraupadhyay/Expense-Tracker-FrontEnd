@@ -34,7 +34,3 @@ signup.addEventListener('submit', (event) => {
 
         
 })
-
-function showUser(){
-
-}
